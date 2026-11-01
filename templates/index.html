@@ -1,0 +1,811 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>CareWalk | Giám sát khung tập đi</title>
+    <!-- Trỏ đúng đường dẫn CSS chuẩn của Flask -->
+    <!-- link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"-->
+    <style>
+      * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+body {
+    background-color: #f4f6f9;
+    color: #333;
+}
+
+.app {
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* Sidebar */
+.sidebar {
+    width: 260px;
+    background: #1e293b;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 30px;
+}
+
+.brand-icon {
+    font-size: 20px;
+    background: #3b82f6;
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 8px;
+}
+
+.brand small {
+    display: block;
+    color: #94a3b8;
+    font-size: 11px;
+}
+
+nav {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+}
+
+.nav {
+    background: none;
+    border: none;
+    color: #94a3b8;
+    text-align: left;
+    padding: 12px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: 0.2s;
+}
+
+.nav:hover, .nav.active {
+    background: #334155;
+    color: #fff;
+}
+
+.side-foot {
+    font-size: 12px;
+    color: #94a3b8;
+    border-top: 1px solid #334155;
+    padding-top: 15px;
+}
+
+.dot {
+    height: 8px;
+    width: 8px;
+    background: #22c55e;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 6px;
+}
+
+/* Main Content */
+.main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    background: #f8fafc;
+}
+
+header {
+    padding: 20px 30px;
+    background: #fff;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.eyebrow {
+    font-size: 11px;
+    color: #64748b;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.live {
+    background: #dcfce7;
+    color: #166534;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.live i {
+    height: 6px;
+    width: 6px;
+    background: #22c55e;
+    border-radius: 50%;
+    display: inline-block;
+    animation: pulse 1.5s infinite;
+}
+
+.avatar {
+    width: 40px;
+    height: 40px;
+    background: #3b82f6;
+    color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+/* Screens */
+.screen {
+    display: none;
+    padding: 30px;
+}
+
+.screen.active {
+    display: block;
+}
+
+/* Welcome Box */
+.welcome {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    color: #fff;
+    border-radius: 16px;
+    padding: 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.welcome-art {
+    font-size: 60px;
+}
+
+.welcome h2 {
+    margin: 8px 0;
+    font-size: 24px;
+}
+
+.eyebrow.light {
+    color: #93c5fd;
+}
+
+/* Stats */
+.stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-bottom: 25px;
+}
+
+.stat {
+    background: #fff;
+    padding: 20px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.stat-icon {
+    width: 45px;
+    height: 45px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.stat-icon.blue { background: #eff6ff; color: #3b82f6; }
+.stat-icon.green { background: #f0fdf4; color: #22c55e; }
+.stat-icon.red { background: #fef2f2; color: #ef4444; }
+
+.stat b {
+    font-size: 20px;
+    display: block;
+    margin-top: 4px;
+    color: #1e293b;
+}
+
+.stat small {
+    color: #64748b;
+    font-size: 13px;
+}
+
+/* Toolbar & Buttons */
+.toolbar {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 25px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.search {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    padding: 8px 14px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    min-width: 250px;
+}
+
+.search input {
+    border: none;
+    outline: none;
+    width: 100%;
+    font-size: 14px;
+}
+
+.search kbd {
+    background: #f1f5f9;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 11px;
+    color: #64748b;
+}
+
+.btn {
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    font-size: 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: 0.2s;
+}
+
+.btn.primary { background: #3b82f6; color: #fff; }
+.btn.primary:hover { background: #2563eb; }
+.btn.outline { background: #fff; border: 1px solid #e2e8f0; color: #334155; }
+.btn.outline:hover { background: #f8fafc; }
+.btn.danger { background: #ef4444; color: #fff; }
+.btn.danger:hover { background: #dc2626; }
+.btn.success { background: #22c55e; color: #fff; }
+.btn.dark { background: #1e293b; color: #fff; }
+
+/* Section Headings */
+.section-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    margin-top: 25px;
+}
+
+.section-head h3 {
+    font-size: 18px;
+    color: #1e293b;
+}
+
+.section-head p {
+    color: #64748b;
+    font-size: 13px;
+}
+
+.pill {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.red-pill { background: #fef2f2; color: #ef4444; }
+.blue-pill { background: #eff6ff; color: #3b82f6; }
+
+/* Panels & Grids */
+.panel {
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    margin-bottom: 20px;
+}
+
+.grid-two {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 14px;
+}
+
+.red-text { color: #ef4444; }
+.blue-text { color: #3b82f6; }
+
+/* Metric Cards */
+.metric-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+}
+
+.metric {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    padding: 20px;
+    border-radius: 12px;
+    text-align: left;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    transition: 0.2s;
+}
+
+.metric:hover {
+    border-color: #3b82f6;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+}
+
+.metric-icon {
+    font-size: 24px;
+    margin-bottom: 8px;
+}
+
+.metric small {
+    color: #64748b;
+    font-size: 12px;
+}
+
+.metric b {
+    font-size: 18px;
+    color: #1e293b;
+}
+
+.metric em {
+    font-size: 11px;
+    color: #94a3b8;
+    font-style: normal;
+}
+
+/* Camera View */
+.camera-view {
+    background: #0f172a;
+    color: #fff;
+    height: 240px;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    margin-bottom: 15px;
+}
+
+.camera-symbol {
+    font-size: 40px;
+    color: #ef4444;
+    animation: pulse 1s infinite;
+}
+
+/* Tables */
+.table-wrap {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 14px;
+}
+
+th {
+    background: #f8fafc;
+    color: #64748b;
+    padding: 12px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+td {
+    padding: 12px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.hidden { display: none !important; }
+
+footer {
+    text-align: center;
+    padding: 20px;
+    color: #94a3b8;
+    font-size: 12px;
+    border-top: 1px solid #e2e8f0;
+    margin-top: auto;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.4; }
+    100% { opacity: 1; }
+}
+
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <aside class="sidebar">
+        <div class="brand">
+          <span class="brand-icon">✚</span>
+          <div>
+            <b>CareWalk</b>
+            <small>HỆ THỐNG GIÁM SÁT</small>
+          </div>
+        </div>
+        <nav>
+          <button class="nav active" data-screen="1">▦ <span>Tổng quan</span></button>
+          <button class="nav" data-screen="9">☷ <span>Danh sách bệnh nhân</span></button>
+          <button class="nav" data-screen="3">◷ <span>Nhắc uống thuốc</span></button>
+          <button class="nav" data-screen="4">＋ <span>Đăng kí người mới</span></button>
+          <button class="nav" data-screen="8">⌖ <span>Bản đồ</span></button>
+        </nav>
+        <div class="side-foot">
+          <span class="dot"></span> Hệ thống đang hoạt động
+          <small>Raspberry Pi · ESP32 MQTT</small>
+        </div>
+      </aside>
+
+      <main class="main">
+        <header>
+          <div>
+            <small class="eyebrow">TRUNG TÂM CHĂM SÓC NGƯỜI CAO TUỔI</small>
+            <h1 id="page-title">Tổng quan giám sát</h1>
+          </div>
+          <div class="header-right">
+            <span class="live"><i></i> REALTIME</span>
+            <div class="avatar">GS</div>
+          </div>
+        </header>
+
+        <!-- Màn hình 1: Tổng quan -->
+        <section id="screen-1" class="screen active">
+          <div class="welcome">
+            <div>
+              <span class="eyebrow light">BẢNG ĐIỀU KHIỂN</span>
+              <h2>Xin chào, người giám sát</h2>
+              <p>Theo dõi trạng thái khung tập đi và nhận cảnh báo theo thời gian thực.</p>
+            </div>
+            <div class="welcome-art">♿</div>
+          </div>
+
+          <div class="stats">
+            <div class="stat">
+              <span class="stat-icon blue">♙</span>
+              <div><small>Tổng bệnh nhân</small><b id="total-count">4</b></div>
+            </div>
+            <div class="stat">
+              <span class="stat-icon green">✓</span>
+              <div><small>Đang ổn định</small><b id="stable-count">3</b></div>
+            </div>
+            <div class="stat">
+              <span class="stat-icon red">⚠</span>
+              <div><small>Cảnh báo cần xử lý</small><b id="alert-count">1</b></div>
+            </div>
+          </div>
+
+          <div class="toolbar">
+            <label class="search">⌕ <input id="search-home" placeholder="Tìm kiếm bệnh nhân..."><kbd>Enter</kbd></label>
+            <button class="btn outline" data-go="3">🔔 Nhắc uống thuốc</button>
+            <button class="btn outline" id="broadcast">🎤 Nhấn giữ để thông báo</button>
+            <button class="btn danger" id="sos">🚨 S O S</button>
+            <button class="btn primary" data-go="4">＋ Đăng kí người mới</button>
+          </div>
+
+          <div class="section-head">
+            <div>
+              <h3>Cảnh báo sức khỏe</h3>
+              <p>Thông báo từ các khung tập đi</p>
+            </div>
+            <span class="pill red-pill"><i></i> Cần chú ý</span>
+          </div>
+          <div id="alert-list" class="alert-list"></div>
+
+          <div class="section-head">
+            <div>
+              <h3>Bệnh nhân đang theo dõi</h3>
+              <p>Trạng thái gần nhất được gửi lên hệ thống</p>
+            </div>
+            <button class="text-btn" data-go="9">DANH SÁCH BỆNH NHÂN →</button>
+          </div>
+          <div id="patient-cards" class="patient-cards"></div>
+
+          <!-- Bảng hiển thị thông số cảm biến thời gian thực từ ESP32 -->
+          <div class="panel" style="margin-top: 20px;">
+            <h3>Thông số cảm biến thời gian thực (ESP32 MQTT)</h3>
+            <div class="info-row"><span>Gia tốc X (accelX):</span><b id="esp-accelX">0.00</b></div>
+            <div class="info-row"><span>Gia tốc Y (accelY):</span><b id="esp-accelY">0.00</b></div>
+            <div class="info-row"><span>Gia tốc Z (accelZ):</span><b id="esp-accelZ">0.00</b></div>
+            <div class="info-row"><span>Cảm biến IR:</span><b id="esp-ir">0</b></div>
+            <div class="info-row"><span>Tọa độ GPS:</span><b id="esp-gps" class="blue-text">Đang cập nhật...</b></div>
+          </div>
+
+          <div class="sos-panel">
+            <div>
+              <b>📢 Thông báo khẩn cấp</b>
+              <p>Nhấn SOS để phát tín hiệu tập hợp trên các khung tập đi đã kết nối.</p>
+            </div>
+            <button class="btn dark" id="sos2">KÍCH HOẠT S O S</button>
+          </div>
+        </section>
+
+        <!-- Màn hình 2: Chi tiết cảnh báo -->
+        <section id="screen-2" class="screen">
+          <button class="back" data-go="1">← Quay lại tổng quan</button>
+          <div class="detail-hero">
+            <div class="big-avatar" id="p2-avatar">NV</div>
+            <div class="grow">
+              <span class="eyebrow">CẢNH BÁO BỆNH NHÂN</span>
+              <h2 id="p2-name">NGUYỄN VĂN B</h2>
+              <p id="p2-age">80 tuổi · Khung tập đi #CW-002</p>
+              <span class="pill red-pill" id="p2-status">Nhịp tim cao / Có thể đã ngã</span>
+            </div>
+            <div class="alert-mark">!</div>
+          </div>
+          <div class="grid-two">
+            <div class="panel">
+              <h3>Thông tin cảnh báo</h3>
+              <div class="info-row"><span>Trạng thái</span><b class="red-text">Cần kiểm tra ngay</b></div>
+              <div class="info-row"><span>Vị trí gần nhất</span><b id="p2-location">Phòng tập</b></div>
+              <div class="info-row"><span>Tín hiệu</span><b>Khung tập đi / Raspberry Pi</b></div>
+              <div class="button-row">
+                <button class="btn primary" data-go="8">⌖ BẢN ĐỒ & CHỈ ĐƯỜNG</button>
+                <button class="btn success" id="mark-stable">✓ ĐÃ ỔN ĐỊNH</button>
+              </div>
+            </div>
+            <div class="panel">
+              <h3>Hướng dẫn xử lý</h3>
+              <ol class="steps">
+                <li>Đến vị trí bệnh nhân hiển thị trên bản đồ.</li>
+                <li>Kiểm tra tình trạng và xác nhận an toàn.</li>
+                <li>Nhấn “Đã ổn định” để đóng cảnh báo.</li>
+              </ol>
+              <div class="notice">⚠️ Nếu bệnh nhân đang gặp nguy hiểm, hãy kiểm tra trực tiếp và gọi hỗ trợ y tế khi cần.</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Màn hình 3: Nhắc uống thuốc -->
+        <section id="screen-3" class="screen">
+          <div class="section-head">
+            <div>
+              <h3>Bệnh nhân gần đến giờ uống thuốc</h3>
+              <p>Chạm biểu tượng đồng hồ để phát nhắc nhở đến khung tập đi.</p>
+            </div>
+            <span class="pill blue-pill">🔔 Nhắc nhở</span>
+          </div>
+          <div class="panel table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Tên bệnh nhân</th>
+                  <th>Giờ uống</th>
+                  <th>Trạng thái</th>
+                  <th>Nhắc ngay</th>
+                </tr>
+              </thead>
+              <tbody id="medication-table"></tbody>
+            </table>
+          </div>
+          <div class="notice">ℹ️ Tính năng phát âm thanh trên thiết bị khung tập đi cần Raspberry Pi nhận lệnh từ máy chủ/API.</div>
+        </section>
+
+        <!-- Màn hình 4: Đăng kí người mới -->
+        <section id="screen-4" class="screen">
+          <button class="back" data-go="1">← Quay lại</button>
+          <div class="panel form-panel">
+            <div class="section-head">
+              <div>
+                <h3>Đăng kí người mới</h3>
+                <p>Nhập hồ sơ bệnh nhân và thông tin thuốc đang sử dụng.</p>
+              </div>
+              <span class="stat-icon blue">＋</span>
+            </div>
+            <form id="patient-form">
+              <div class="form-grid">
+                <label>Họ và tên *<input name="name" required placeholder="Ví dụ: Nguyễn Văn A"></label>
+                <label>Tuổi *<input name="age" type="number" min="1" max="120" required placeholder="80"></label>
+                <label class="full">Bệnh nền<input name="condition" placeholder="Cao huyết áp, tiểu đường..."></label>
+                <label>Vị trí thường gặp<input name="location" placeholder="Phòng sinh hoạt"></label>
+                <label>Mã khung tập đi<input name="device" placeholder="CW-005"></label>
+              </div>
+              <div class="form-actions">
+                <button type="reset" class="btn outline">Làm mới</button>
+                <button class="btn primary" type="submit">LƯU HỒ SƠ</button>
+              </div>
+            </form>
+          </div>
+        </section>
+
+        <!-- Màn hình 5: Hồ sơ bệnh nhân -->
+        <section id="screen-5" class="screen">
+          <button class="back" data-go="1">← Quay lại tổng quan</button>
+          <div class="profile-head">
+            <div class="big-avatar" id="profile-avatar">NA</div>
+            <div class="grow">
+              <span class="eyebrow">HỒ SƠ BỆNH NHÂN</span>
+              <h2 id="profile-name">NGUYỄN VĂN A</h2>
+              <p id="profile-age">84 tuổi · Khung tập đi #CW-001</p>
+            </div>
+          </div>
+          <div class="profile-layout">
+            <div class="metric-grid">
+              <button class="metric" data-go="7">
+                <span class="metric-icon">🚶</span>
+                <small>Quãng đường di chuyển</small>
+                <b id="distance">0.00 m</b>
+                <em>Hôm nay</em>
+              </button>
+              <button class="metric" id="heart-open">
+                <span class="metric-icon" id="heart-icon">❤️</span>
+                <small>Nhịp tim</small>
+                <b id="heart-value">72 BPM</b>
+                <em id="heart-state">Bình thường</em>
+              </button>
+              <button class="metric">
+                <span class="metric-icon">📍</span>
+                <small>Vị trí hiện tại</small>
+                <b id="profile-location">Phòng tập</b>
+                <em class="blue-text">Trực tuyến</em>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Màn hình 8: Bản đồ định vị -->
+        <section id="screen-8" class="screen">
+          <button class="back" data-go="5">← Quay lại hồ sơ</button>
+          <div class="section-head">
+            <div>
+              <h3>Bản đồ vị trí bệnh nhân</h3>
+              <p id="map-location-label">Phòng sinh hoạt · GPS</p>
+            </div>
+            <span class="pill blue-pill">⌖ Định vị</span>
+          </div>
+          <div class="map-wrap">
+            <div class="map-placeholder" id="map-placeholder">
+              <div class="map-pin">●<span id="map-pin-name">Bệnh nhân</span></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Màn hình 9: Danh sách bệnh nhân -->
+        <section id="screen-9" class="screen">
+          <div class="section-head">
+            <div>
+              <h3>Danh sách bệnh nhân</h3>
+            </div>
+            <button class="btn primary" data-go="4">＋ Thêm bệnh nhân</button>
+          </div>
+          <div class="panel table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Tên</th>
+                  <th>Tuổi</th>
+                  <th>Bệnh nền</th>
+                  <th>Trạng thái</th>
+                </tr>
+              </thead>
+              <tbody id="all-patients"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <footer>CareWalk · Hệ thống giám sát khung tập đi kết nối MQTT ESP32 <span>Raspberry Pi → Web</span></footer>
+      </main>
+    </div>
+
+    <!-- Scripts giao diện CareWalk -->
+    <script src="{{ url_for('static', filename='js/data.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/ui.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+
+    <!-- 📌 SCRIPT ĐỒNG BỘ DỮ LIỆU TỪ MQTT / ESP32 THỜI GIAN THỰC -->
+    <script>
+        setInterval(() => {
+            fetch('/get_sensor_data')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.sensor) {
+                        const s = data.sensor;
+
+                        // 1. Cập nhật nhịp tim
+                        const heartElement = document.getElementById('heart-value');
+                        if (heartElement) {
+                            heartElement.innerText = (s.heart_rate || 72) + " BPM";
+                        }
+
+                        // 2. Cập nhật vị trí
+                        const locElement = document.getElementById('profile-location');
+                        if (locElement) {
+                            locElement.innerText = s.location || "Phòng tập";
+                        }
+
+                        // 3. Cập nhật quãng đường
+                        const distElement = document.getElementById('distance');
+                        if (distElement) {
+                            distElement.innerText = (s.distance !== undefined ? s.distance.toFixed(2) : "0.00") + " m";
+                        }
+
+                        // 4. Cập nhật gia tốc X, Y, Z
+                        const ax = document.getElementById('esp-accelX');
+                        if (ax) ax.innerText = s.accelX !== undefined ? s.accelX.toFixed(2) : "0.00";
+
+                        const ay = document.getElementById('esp-accelY');
+                        if (ay) ay.innerText = s.accelY !== undefined ? s.accelY.toFixed(2) : "0.00";
+
+                        const az = document.getElementById('esp-accelZ');
+                        if (az) az.innerText = s.accelZ !== undefined ? s.accelZ.toFixed(2) : "0.00";
+
+                        // 5. Cập nhật cảm biến IR
+                        const irEl = document.getElementById('esp-ir');
+                        if (irEl) irEl.innerText = s.ir || 0;
+
+                        // 6. Cập nhật GPS
+                        const gpsEl = document.getElementById('esp-gps');
+                        if (gpsEl) {
+                            if (s.gpsValid) {
+                                gpsEl.innerText = `${s.lat.toFixed(6)}, ${s.lng.toFixed(6)}`;
+                            } else {
+                                gpsEl.innerText = "Chưa có tín hiệu GPS";
+                            }
+                        }
+
+                        // 7. Kiểm tra trạng thái té ngã (fall hoặc is_fallen)
+                        const isFallen = s.fall || s.is_fallen;
+                        if (isFallen && typeof checkEmergency === 'function') {
+                            checkEmergency(true, s.heart_rate || 120);
+                        }
+                    }
+                })
+                .catch(err => console.error("Lỗi đồng bộ dữ liệu từ MQTT:", err));
+        }, 1000);
+    </script>
+  </body>
+</html>

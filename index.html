@@ -1,0 +1,457 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>CareWalk | Giá sát khung tập đi</title>
+    <!-- Trỏ đúng đường dẫn CSS chuẩn của Flask -->
+    <link rel="stylesheet" href="hihi.css">
+  </head>
+  <body>
+    <div class="app">
+      <aside class="sidebar">
+        <div class="brand">
+          <span class="brand-icon">✚</span>
+          <div>
+            <b>CareWalk</b>
+            <small>HỆ THỐNG GIÁM SÁT</small>
+          </div>
+        </div>
+        <nav>
+          <button class="nav active" data-screen="1">▦ <span>Tổng quan</span></button>
+          <button class="nav" data-screen="9">☷ <span>Danh sách bệnh nhân</span></button>
+          <button class="nav" data-screen="3">◷ <span>Nhắc uống thuốc</span></button>
+          <button class="nav" data-screen="4">＋ <span>Đăng kí người mới</span></button>
+          <button class="nav" data-screen="8">⌖ <span>Bản đồ</span></button>
+        </nav>
+        <div class="side-foot">
+          <span class="dot"></span> Hệ thống đang hoạt động
+          <small>Raspberry Pi · Image Processing</small>
+        </div>
+      </aside>
+
+      <main class="main">
+        <header>
+          <div>
+            <small class="eyebrow">TRUNG TÂM CHĂM SÓC NGƯỜI CAO TUỔI</small>
+            <h1 id="page-title">Tổng quan giám sát</h1>
+          </div>
+          <div class="header-right">
+            <span class="live"><i></i> REALTIME</span>
+            <div class="avatar">GS</div>
+          </div>
+        </header>
+
+        <!-- Màn hình 1: Tổng quan -->
+        <section id="screen-1" class="screen active">
+          <div class="welcome">
+            <div>
+              <span class="eyebrow light">BẢNG ĐIỀU KHIỂN</span>
+              <h2>Xin chào, người giám sát</h2>
+              <p>Theo dõi trạng thái khung tập đi và nhận cảnh báo theo thời gian thực.</p>
+            </div>
+            <div class="welcome-art">♿</div>
+          </div>
+
+          <div class="stats">
+            <div class="stat">
+              <span class="stat-icon blue">♙</span>
+              <div><small>Tổng bệnh nhân</small><b id="total-count">4</b></div>
+            </div>
+            <div class="stat">
+              <span class="stat-icon green">✓</span>
+              <div><small>Đang ổn định</small><b id="stable-count">3</b></div>
+            </div>
+            <div class="stat">
+              <span class="stat-icon red">⚠</span>
+              <div><small>Cảnh báo cần xử lý</small><b id="alert-count">1</b></div>
+            </div>
+          </div>
+
+          <div class="toolbar">
+            <label class="search">⌕ <input id="search-home" placeholder="Tìm kiếm bệnh nhân..."><kbd>Enter</kbd></label>
+            <button class="btn outline" data-go="3">🔔 Nhắc uống thuốc</button>
+            <button class="btn outline" id="broadcast">🎤 Nhấn giữ để thông báo</button>
+            <button class="btn danger" id="sos">🚨 S O S</button>
+            <button class="btn primary" data-go="4">＋ Đăng kí người mới</button>
+          </div>
+
+          <div class="section-head">
+            <div>
+              <h3>Cảnh báo sức khỏe</h3>
+              <p>Thông báo từ các khung tập đi</p>
+            </div>
+            <span class="pill red-pill"><i></i> Cần chú ý</span>
+          </div>
+          <div id="alert-list" class="alert-list"></div>
+
+          <div class="section-head">
+            <div>
+              <h3>Bệnh nhân đang theo dõi</h3>
+              <p>Trạng thái gần nhất được gửi lên hệ thống</p>
+            </div>
+            <button class="text-btn" data-go="9">DANH SÁCH BỆNH NHÂN →</button>
+          </div>
+          <div id="patient-cards" class="patient-cards"></div>
+
+          <div class="sos-panel">
+            <div>
+              <b>📢 Thông báo khẩn cấp</b>
+              <p>Nhấn SOS để phát tín hiệu tập hợp trên các khung tập đi đã kết nối.</p>
+            </div>
+            <button class="btn dark" id="sos2">KÍCH HOẠT S O S</button>
+          </div>
+        </section>
+
+        <!-- Màn hình 2: Chi tiết cảnh báo -->
+        <section id="screen-2" class="screen">
+          <button class="back" data-go="1">← Quay lại tổng quan</button>
+          <div class="detail-hero">
+            <div class="big-avatar" id="p2-avatar">NV</div>
+            <div class="grow">
+              <span class="eyebrow">CẢNH BÁO BỆNH NHÂN</span>
+              <h2 id="p2-name">NGUYỄN VĂN B</h2>
+              <p id="p2-age">80 tuổi · Khung tập đi #CW-002</p>
+              <span class="pill red-pill" id="p2-status">Nhịp tim cao / Có thể đã ngã</span>
+            </div>
+            <div class="alert-mark">!</div>
+          </div>
+          <div class="grid-two">
+            <div class="panel">
+              <h3>Thông tin cảnh báo</h3>
+              <div class="info-row"><span>Trạng thái</span><b class="red-text">Cần kiểm tra ngay</b></div>
+              <div class="info-row"><span>Vị trí gần nhất</span><b id="p2-location">Phòng sinh hoạt</b></div>
+              <div class="info-row"><span>Tín hiệu</span><b>Khung tập đi / Raspberry Pi</b></div>
+              <div class="button-row">
+                <button class="btn primary" data-go="8">⌖ BẢN ĐỒ & CHỈ ĐƯỜNG</button>
+                <button class="btn success" id="mark-stable">✓ ĐÃ ỔN ĐỊNH</button>
+              </div>
+            </div>
+            <div class="panel">
+              <h3>Hướng dẫn xử lý</h3>
+              <ol class="steps">
+                <li>Đến vị trí bệnh nhân hiển thị trên bản đồ.</li>
+                <li>Kiểm tra tình trạng và xác nhận an toàn.</li>
+                <li>Nhấn “Đã ổn định” để đóng cảnh báo.</li>
+              </ol>
+              <div class="notice">⚠️ Nếu bệnh nhân đang gặp nguy hiểm, hãy kiểm tra trực tiếp và gọi hỗ trợ y tế khi cần.</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Màn hình 3: Nhắc uống thuốc -->
+        <section id="screen-3" class="screen">
+          <div class="section-head">
+            <div>
+              <h3>Bệnh nhân gần đến giờ uống thuốc</h3>
+              <p>Chạm biểu tượng đồng hồ để phát nhắc nhở đến khung tập đi.</p>
+            </div>
+            <span class="pill blue-pill">🔔 Nhắc nhở</span>
+          </div>
+          <div class="panel table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Tên bệnh nhân</th>
+                  <th>Giờ uống</th>
+                  <th>Trạng thái</th>
+                  <th>Nhắc ngay</th>
+                </tr>
+              </thead>
+              <tbody id="medication-table"></tbody>
+            </table>
+          </div>
+          <div class="notice">ℹ️ Tính năng phát âm thanh trên thiết bị khung tập đi cần Raspberry Pi nhận lệnh từ máy chủ/API. Bản demo phát âm thanh ngay trên trình duyệt.</div>
+        </section>
+
+        <!-- Màn hình 4: Đăng kí người mới -->
+        <section id="screen-4" class="screen">
+          <button class="back" data-go="1">← Quay lại</button>
+          <div class="panel form-panel">
+            <div class="section-head">
+              <div>
+                <h3>Đăng kí người mới</h3>
+                <p>Nhập hồ sơ bệnh nhân và thông tin thuốc đang sử dụng.</p>
+              </div>
+              <span class="stat-icon blue">＋</span>
+            </div>
+            <form id="patient-form">
+              <div class="form-grid">
+                <label>Họ và tên *<input name="name" required placeholder="Ví dụ: Nguyễn Văn A"></label>
+                <label>Tuổi *<input name="age" type="number" min="1" max="120" required placeholder="80"></label>
+                <label class="full">Bệnh nền<input name="condition" placeholder="Cao huyết áp, tiểu đường..."></label>
+                <label>Vị trí thường gặp<input name="location" placeholder="Phòng sinh hoạt"></label>
+                <label>Mã khung tập đi<input name="device" placeholder="CW-005"></label>
+                <label class="full">Ảnh đại diện
+                  <input id="photo-input" type="file" accept="image/*">
+                  <span class="hint">Ảnh được lưu cục bộ trong trình duyệt ở bản demo.</span>
+                  <img id="photo-preview" class="photo-preview hidden" alt="Ảnh đại diện xem trước">
+                </label>
+              </div>
+              <h4>Thuốc đang dùng</h4>
+              <div class="form-grid">
+                <label>Tên thuốc<input name="medicine" placeholder="Tên thuốc"></label>
+                <label>Số lượng<input name="quantity" placeholder="Ví dụ: 1 viên"></label>
+                <label>Buổi / giờ uống<input name="time" placeholder="08:00"></label>
+              </div>
+              <div class="form-actions">
+                <button type="reset" class="btn outline">Làm mới</button>
+                <button class="btn primary" type="submit">LƯU HỒ SƠ</button>
+              </div>
+            </form>
+          </div>
+        </section>
+
+        <!-- Màn hình 5: Hồ sơ bệnh nhân -->
+        <section id="screen-5" class="screen">
+          <button class="back" data-go="1">← Quay lại tổng quan</button>
+          <div class="profile-head">
+            <div class="big-avatar" id="profile-avatar">NA</div>
+            <div class="grow">
+              <span class="eyebrow">HỒ SƠ BỆNH NHÂN</span>
+              <h2 id="profile-name">NGUYỄN VĂN A</h2>
+              <p id="profile-age">84 tuổi · Khung tập đi #CW-001</p>
+            </div>
+            <button class="btn outline" data-go="6">✎ Sửa thông tin</button>
+          </div>
+          <div class="profile-layout">
+            <div class="panel camera-panel">
+              <div class="section-head">
+                <div>
+                  <h3>Camera realtime</h3>
+                  <p>Hai góc camera · mô phỏng giao diện</p>
+                </div>
+                <span class="live"><i></i> LIVE</span>
+              </div>
+              <div class="camera-view" id="camera-view">
+                <div class="camera-grid"></div>
+                <div class="camera-symbol">◉</div>
+                <span id="camera-label">GÓC CAMERA 1 · TRƯỚC</span>
+                <small>Luồng camera cần kết nối Raspberry Pi / camera thực</small>
+              </div>
+              <div class="camera-controls">
+                <button class="btn outline" id="prev-camera">← Góc trước</button>
+                <span id="camera-count">1 / 2</span>
+                <button class="btn outline" id="next-camera">Góc tiếp →</button>
+              </div>
+            </div>
+            <div class="metric-grid">
+              <button class="metric" data-go="7">
+                <span class="metric-icon">🚶</span>
+                <small>Quãng đường di chuyển</small>
+                <b id="distance">800 m</b>
+                <em>Hôm nay</em>
+              </button>
+              <div class="metric">
+                <span class="metric-icon">🏃</span>
+                <small>Tốc độ di chuyển</small>
+                <b id="speed">0.8 km/h</b>
+                <em>Trung bình</em>
+              </div>
+              <button class="metric" id="heart-open">
+                <span class="metric-icon" id="heart-icon">❤️</span>
+                <small>Nhịp tim</small>
+                <b id="heart-value">70 BPM</b>
+                <em id="heart-state">Bình thường · nhấn xem biểu đồ</em>
+              </button>
+              <button class="metric">
+                <span class="metric-icon">📍</span>
+                <small>Vị trí hiện tại</small>
+                <b id="profile-location">Phòng tập</b>
+                <em class="blue-text">Nhấn để xem đường đi</em>
+              </button>
+            </div>
+          </div>
+          <div class="bottom-actions">
+            <button class="btn primary" data-go="8">⌖ VỊ TRÍ HIỆN TẠI / CHỈ ĐƯỜNG</button>
+            <button class="btn outline" data-go="6">✎ Hồ sơ bệnh án</button>
+          </div>
+          <div class="swipe-zone" id="swipe-zone">← Vuốt ngang để xem bệnh án →</div>
+        </section>
+
+        <!-- Màn hình 6: Chỉnh sửa hồ sơ -->
+        <section id="screen-6" class="screen">
+          <button class="back" data-go="5">← Quay lại hồ sơ</button>
+          <div class="panel form-panel">
+            <div class="section-head">
+              <div>
+                <h3>Chỉnh sửa thông tin bệnh nhân</h3>
+                <p>Cập nhật hồ sơ và lưu thay đổi.</p>
+              </div>
+            </div>
+            <form id="edit-form">
+              <div class="form-grid">
+                <label>Họ và tên *<input name="name" required></label>
+                <label>Tuổi *<input name="age" type="number" required></label>
+                <label class="full">Bệnh nền<input name="condition"></label>
+                <label>Vị trí hiện tại<input name="location"></label>
+                <label>Mã khung tập đi<input name="device"></label>
+                <label class="full">Ảnh đại diện
+                  <input id="edit-photo" type="file" accept="image/*">
+                  <img id="edit-preview" class="photo-preview hidden" alt="Ảnh mới">
+                </label>
+              </div>
+              <h4>Thuốc đang dùng</h4>
+              <div class="form-grid">
+                <label>Tên thuốc<input name="medicine"></label>
+                <label>Số lượng<input name="quantity"></label>
+                <label>Buổi / giờ uống<input name="time"></label>
+              </div>
+              <div class="form-actions">
+                <button type="button" class="btn outline" data-go="5">Hủy</button>
+                <button type="submit" class="btn primary">LƯU THAY ĐỔI</button>
+              </div>
+            </form>
+          </div>
+        </section>
+
+        <!-- Màn hình 7: Biểu đồ sức khỏe -->
+        <section id="screen-7" class="screen">
+          <button class="back" data-go="5">← Quay lại hồ sơ</button>
+          <div class="section-head">
+            <div>
+              <h3>Biểu đồ sức khỏe & vận động</h3>
+              <p id="chart-patient">NGUYỄN VĂN A · Nhịp tim</p>
+            </div>
+            <div class="segmented">
+              <button class="active" data-period="day">Theo ngày</button>
+              <button data-period="week">Theo tuần</button>
+            </div>
+          </div>
+          <div class="panel chart-panel">
+            <div class="chart-summary">
+              <div><small>Nhịp tim trung bình</small><b id="avg-heart">72 BPM</b></div>
+              <div><small>Khoảng theo dõi</small><b id="chart-range">Hôm nay</b></div>
+            </div>
+            <canvas id="heart-chart" height="280"></canvas>
+            <div class="chart-legend">
+              <span><i></i> Nhịp tim (BPM)</span>
+              <span class="hint">Dữ liệu minh họa — thay bằng dữ liệu cảm biến thực tế khi tích hợp.</span>
+            </div>
+          </div>
+          <div class="grid-two">
+            <div class="panel">
+              <h3>Ngưỡng theo dõi</h3>
+              <div class="info-row"><span>Nhịp tim thấp</span><b> dưới 55 BPM</b></div>
+              <div class="info-row"><span>Nhịp tim cao</span><b> trên 110 BPM</b></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Màn hình 8: Bản đồ định vị -->
+        <section id="screen-8" class="screen">
+          <button class="back" data-go="5">← Quay lại hồ sơ</button>
+          <div class="section-head">
+            <div>
+              <h3>Bản đồ vị trí bệnh nhân</h3>
+              <p id="map-location-label">Phòng sinh hoạt · vị trí mô phỏng</p>
+            </div>
+            <span class="pill blue-pill">⌖ Định vị</span>
+          </div>
+          <div class="map-wrap">
+            <div class="map-placeholder" id="map-placeholder">
+              <div class="map-road road-a"></div>
+              <div class="map-road road-b"></div>
+              <div class="map-road road-c"></div>
+              <div class="map-building b1">PHÒNG TẬP</div>
+              <div class="map-building b2">PHÒNG SINH HOẠT</div>
+              <div class="map-building b3">Y TẾ</div>
+              <div class="map-pin">●<span id="map-pin-name">Bệnh nhân</span></div>
+              <div class="map-note">BẢN ĐỒ MINH HỌA<br><small>Thay bằng tọa độ GPS / sơ đồ cơ sở thực tế</small></div>
+            </div>
+          </div>
+          <div class="panel direction-panel">
+            <div>
+              <span class="eyebrow">ĐIỀU HƯỚNG</span>
+              <h3 id="direction-title">Đến vị trí bệnh nhân</h3>
+              <p id="direction-status">Nhấn chỉ đường để mở điều hướng trên bản đồ.</p>
+            </div>
+            <button class="btn primary" id="directions">↗ CHỈ ĐƯỜNG</button>
+          </div>
+          <div class="notice">Để định vị chính xác cần gửi latitude/longitude từ thiết bị. Bản demo dùng vị trí minh họa, không thay thế định vị thực tế.</div>
+        </section>
+
+        <!-- Màn hình 9: Danh sách bệnh nhân -->
+        <section id="screen-9" class="screen">
+          <div class="section-head">
+            <div>
+              <h3>Danh sách bệnh nhân</h3>
+              <p>Danh sách tự cập nhật khi thêm, sửa hoặc xóa hồ sơ.</p>
+            </div>
+            <button class="btn primary" data-go="4">＋ Thêm bệnh nhân</button>
+          </div>
+          <div class="panel table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Tên</th>
+                  <th>Tuổi</th>
+                  <th>Bệnh nền</th>
+                  <th>Trạng thái</th>
+                  <th>Thao tác</th>
+                </tr>
+              </thead>
+              <tbody id="all-patients"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <footer>CareWalk · Giao diện prototype cho đồ án xử lý ảnh <span>Raspberry Pi → API → Website</span></footer>
+      </main>
+    </div>
+
+    <div id="toast" class="toast" role="status"></div>
+    <div id="broadcast-modal" class="modal hidden">
+      <div class="modal-card">
+        <button class="modal-close" id="close-broadcast">×</button>
+        <span class="stat-icon blue">🎤</span>
+        <h3>Thông báo đến tất cả khung tập đi</h3>
+        <p>Nhấn giữ nút bên dưới và nói thông báo. Trình duyệt có thể yêu cầu quyền microphone.</p>
+        <textarea id="broadcast-text" placeholder="Hoặc nhập nội dung thông báo..."></textarea>
+        <button class="btn primary hold-btn" id="hold-to-talk">Nhấn giữ để thông báo</button>
+        <small id="speech-status">Bản demo đọc thông báo qua loa máy tính.</small>
+      </div>
+    </div>
+
+    <!-- Scripts giao diện CareWalk -->
+    <script src="js/data.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/patients.js"></script>
+    <script src="js/alerts.js"></script>
+    <script src="js/medication.js"></script>
+    <script src="js/profile.js"></script>
+    <script src="js/chart.js"></script>
+    <script src="js/map.js"></script>
+    <script src="js/alarm.js"></script>
+    <script src="js/app.js"></script>
+
+    <!-- 📌 SCRIPT ĐỒNG BỘ DỮ LIỆU TỪ MQTT / ESP32 THỜI GIAN THỰC -->
+    <script>
+        setInterval(() => {
+            fetch('/get_sensor_data')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.sensor) {
+                        // Cập nhật nhịp tim lên giao diện CareWalk
+                        const heartElement = document.getElementById('heart-value');
+                        if (heartElement) {
+                            heartElement.innerText = data.sensor.heart_rate + " BPM";
+                        }
+
+                        // Cập nhật vị trí
+                        const locElement = document.getElementById('profile-location');
+                        if (locElement) {
+                            locElement.innerText = data.sensor.location;
+                        }
+
+                        // Nếu ESP32 phát hiện té ngã, kích hoạt cảnh báo
+                        if (data.sensor.is_fallen && typeof checkEmergency === 'function') {
+                            checkEmergency(true, data.sensor.heart_rate);
+                        }
+                    }
+                })
+                .catch(err => console.error("Lỗi đồng bộ dữ liệu từ MQTT:", err));
+        }, 1000);
+    </script>
+  </body>
+</html>
